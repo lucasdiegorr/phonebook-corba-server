@@ -3,13 +3,10 @@
  */
 package implementation;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -22,93 +19,64 @@ import interfaces.PhoneBookServerInterfacePOA;
  */
 public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 
-	private List<Contact> listContacts;
-	
-	/**
-	 * 
-	 */
+	private HashMap<String, Integer> listContacts;
+
 	public PhoneBookServerImplemetation() {
-		this.listContacts = new ArrayList<Contact>();
+		this.listContacts = new HashMap<String, Integer>();
+	}
+
+	/* (non-Javadoc)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#insertContact(java.lang.String)
+	 */
+	public void insertContact(String contactName, int contactNumber) {
+		this.listContacts.put(contactName, contactNumber);
 	}
 	
 	/* (non-Javadoc)
 	 * @see interfaces.PhoneBookServerInterfaceOperations#insertContact(java.lang.String)
 	 */
-	public void insertContact(String contact) {
-		
-		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(contact));
-		
-		Contact contactToInsert = null;
-		
-		try {
-			contactToInsert = (Contact) new ObjectInputStream(byteArrayInput).readObject();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		this.listContacts.add(contactToInsert);
-	}
-
-	/* (non-Javadoc)
-	 * @see interfaces.PhoneBookServerInterfaceOperations#getListContact()
-	 */
 	public String getListContact() {
 		
 		ByteArrayOutputStream byteArrayOutput = new ByteArrayOutputStream();
-		
+
 		try {
 			new ObjectOutputStream(byteArrayOutput).writeObject(this.listContacts);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return Base64.encodeBase64String(byteArrayOutput.toByteArray());
 	}
 
 	/* (non-Javadoc)
-	 * @see interfaces.PhoneBookServerInterfaceOperations#updateContact(java.lang.String)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#insertContact(java.lang.String, java.lang.String)
 	 */
-	public void updateContact(String contact) {
+	public void updateContactName(String contactNameUpdated, String contactNameOld) {
 		
-		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(contact));
-		
-		Contact contactUpdated = null;
-		
-		try {
-			contactUpdated = (Contact) new ObjectInputStream(byteArrayInput).readObject();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		for (Contact contactToUpdate : this.listContacts) {
-			if (contactToUpdate.getId() == contactUpdated.getId()) {
-				contactToUpdate = contactUpdated;
+		for (String key : this.listContacts.keySet()) {
+			if (key.equals(contactNameOld)) {
+				int phone = this.listContacts.get(contactNameOld);
+				this.listContacts.remove(contactNameOld);
+				this.listContacts.put(contactNameUpdated, phone);
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#updateContactNumber(java.lang.String, java.lang.Integer)
+	 */
+	public void updateContactNumber(String contactName, int contactNumberOld) {
+		
+		this.listContacts.replace(contactName, contactNumberOld);
+		
 	}
 
 	/* (non-Javadoc)
 	 * @see interfaces.PhoneBookServerInterfaceOperations#deleteContact(java.lang.String)
 	 */
 	public void deleteContact(String contact) {
-		
-		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(contact));
-		
-		Contact contactToDelete = null;
-		
-		try {
-			contactToDelete = (Contact) new ObjectInputStream(byteArrayInput).readObject();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		this.listContacts.remove(contactToDelete);
+		this.listContacts.remove(contact);
 	}
+
 
 }
