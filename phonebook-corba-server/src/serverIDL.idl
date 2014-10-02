@@ -1,0 +1,13 @@
+module interfaces{
+	interface PhoneBookServerInterface{
+
+		void insertContact(in string contact);
+		
+		string getListContact();
+		
+		void updateContact(in string contact);
+		
+		void deleteContact(in string contact);
+		
+	};
+};
