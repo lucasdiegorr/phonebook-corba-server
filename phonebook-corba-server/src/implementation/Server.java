@@ -5,6 +5,8 @@ package implementation;
 
 import java.util.Properties;
 
+import javax.swing.JTextArea;
+
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
 import org.omg.CORBA.ORBPackage.InvalidName;
@@ -24,15 +26,24 @@ import org.omg.PortableServer.POAPackage.WrongPolicy;
  * @email lucas.diegorr@gmail.com
  * @year 2014
  */
-public class Server {
+public class Server implements Runnable{
 
 	private String ipNameService;
 	private String portNameService;
+	private JTextArea textArea;
+	private ORB orb;
+	private PhoneBookServerImplemetation phoneBookServer;
+
+	public Server(String ip, String port, JTextArea textArea) {
+		this.ipNameService = ip;
+		this.portNameService = port;
+		this.textArea = textArea;
+	}
 
 	/**
 	 * @param args
 	 */
-	public void run() {
+	public void init() {
 		
 		
 		Properties properties = new Properties();
@@ -40,28 +51,38 @@ public class Server {
 		properties.put("org.omg.CORBA.ORBInitialHost", ipNameService);
 		properties.put("org.omg.CORBA.ORBInitialPort", portNameService);
 		
-		ORB orb = ORB.init((String[])null, properties);
-	
+		orb = ORB.init((String[])null, properties);
+		System.out.println("Iniciando o servidor");
+		textArea.append("Iniciando o servidor.\n");
+		
 		try {
 			Object objectPOA = orb.resolve_initial_references("RootPOA");
+			System.out.println("Obtendo o POA");
+			textArea.append("Obtendo o POA.\n");
 			
 			POA rootPOA = POAHelper.narrow(objectPOA);
 			
 			Object objectNameService = orb.resolve_initial_references("NameService");
+			System.out.println("Obtendo o NameService");
+			textArea.append("Obtendo o NameService.\n");
 			
 			NamingContext naming = NamingContextHelper.narrow(objectNameService);
 			
-			PhoneBookServerImplemetation phoneBookServer = new PhoneBookServerImplemetation();
+			phoneBookServer = new PhoneBookServerImplemetation();
 			
 			Object objectReference = rootPOA.servant_to_reference(phoneBookServer);
 			
 			NameComponent[] path = {new NameComponent("Server", "PhoneBook")};
+			System.out.println("Registrando no servidor");
+			textArea.append("Registrado no Servidor de nomes como PhoneBook.\n");
 			
 			naming.rebind(path, objectReference);
 			
 			rootPOA.the_POAManager().activate();
 			
-			orb.run();
+			textArea.append("Servidor online.\n");
+			System.out.println("Servidor online");
+			
 		} catch (InvalidName e) {
 			e.printStackTrace();
 		} catch (ServantNotActive e) {
@@ -77,6 +98,17 @@ public class Server {
 		} catch (AdapterInactive e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void run() {
+		orb.run();
+		while (true) {
+			synchronize();
+		}
+	}
+
+	private void synchronize() {
+		
 	}
 
 }
