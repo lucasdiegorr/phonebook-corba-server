@@ -11,5 +11,7 @@ module interfaces{
 		
 		void deleteContact(in string contact);
 		
+		long getInternalClockLogic();
+		
 	};
 };

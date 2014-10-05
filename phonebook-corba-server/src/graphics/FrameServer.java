@@ -9,6 +9,7 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -21,6 +22,8 @@ import javax.swing.JTextArea;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * @author Lucas Diego Reboucas Rocha
@@ -62,6 +65,14 @@ public class FrameServer {
 	 */
 	private void initialize() {
 		frmPhonebookServer = new JFrame();
+		frmPhonebookServer.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				if (server.destroy()) {
+					JOptionPane.showMessageDialog(null, "Referencia do servidor apagada.");
+				}
+			}
+		});
 		frmPhonebookServer.setTitle("PhoneBook Server");
 		frmPhonebookServer.setBounds(100, 100, 450, 313);
 		frmPhonebookServer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -82,7 +93,7 @@ public class FrameServer {
 		panelInformation.add(lblPorta);
 		
 		textFieldIP = new JTextField();
-		textFieldIP.setBounds(118, 24, 136, 20);
+		textFieldIP.setBounds(134, 24, 120, 20);
 		panelInformation.add(textFieldIP);
 		textFieldIP.setColumns(10);
 		
@@ -102,7 +113,7 @@ public class FrameServer {
 		textArea.setBounds(6, 16, 408, 133);
 		panelLog.add(textArea);
 		
-		JButton btnConectar = new JButton("Iniciar");
+		final JButton btnConectar = new JButton("Iniciar");
 		btnConectar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String ip = "localhost", port = "900";
@@ -119,6 +130,9 @@ public class FrameServer {
 					port = textFieldPort.getText();
 				}
 				
+				textFieldIP.setEditable(false);
+				textFieldPort.setEditable(false);
+				btnConectar.setEnabled(false);
 				server = new Server(ip, port, textArea);
 				
 				server.init();
