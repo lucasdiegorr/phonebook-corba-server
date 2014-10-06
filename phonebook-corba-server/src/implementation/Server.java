@@ -52,7 +52,7 @@ public class Server implements Runnable{
 	/**
 	 * @param args
 	 */
-	public void init() {
+	public boolean init() {
 
 
 		Properties properties = new Properties();
@@ -60,10 +60,10 @@ public class Server implements Runnable{
 		properties.put("org.omg.CORBA.ORBInitialHost", ipNameService);
 		properties.put("org.omg.CORBA.ORBInitialPort", portNameService);
 
-		orb = ORB.init((String[])null, properties);
-		textArea.append("Iniciando o servidor.\n");
-
 		try {
+			orb = ORB.init((String[])null, properties);
+			textArea.append("Iniciando o servidor.\n");
+
 			Object objectPOA = orb.resolve_initial_references("RootPOA");
 			textArea.append("Obtendo o POA.\n");
 
@@ -91,19 +91,27 @@ public class Server implements Runnable{
 
 		} catch (InvalidName e) {
 			e.printStackTrace();
+			return false;
 		} catch (ServantNotActive e) {
 			e.printStackTrace();
+			return false;
 		} catch (WrongPolicy e) {
 			e.printStackTrace();
+			return false;
 		} catch (NotFound e) {
 			e.printStackTrace();
+			return false;
 		} catch (CannotProceed e) {
 			e.printStackTrace();
+			return false;
 		} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
 			e.printStackTrace();
+			return false;
 		} catch (AdapterInactive e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	/**

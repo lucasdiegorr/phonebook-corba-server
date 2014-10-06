@@ -69,9 +69,10 @@ public class FrameServer {
 		frmPhonebookServer.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent arg0) {
-				if (server.destroy()) {
+				if ((server != null) && (server.destroy())) {
 					JOptionPane.showMessageDialog(null, "Referencia do servidor apagada.");
 				}
+				System.exit(0);
 			}
 		});
 		frmPhonebookServer.setTitle("PhoneBook Server");
@@ -137,12 +138,14 @@ public class FrameServer {
 					port = textFieldPort.getText();
 				}
 				
+				server = new Server(ip, port, textArea);
+				if (server.init()) {
+					JOptionPane.showMessageDialog(null, "Impossível encontrar o endereço informado.\nPor favor verifique o endereço informado ou sua conexão com a internet");
+					return;
+				}
 				textFieldIP.setEditable(false);
 				textFieldPort.setEditable(false);
 				btnConectar.setEnabled(false);
-				server = new Server(ip, port, textArea);
-				
-				server.init();
 				
 				new Thread(server).start();
 			}
