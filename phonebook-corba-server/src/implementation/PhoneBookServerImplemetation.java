@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -21,11 +21,11 @@ import interfaces.PhoneBookServerInterfacePOA;
  */
 public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 
-	private HashMap<String, Integer> listContacts;
+	private TreeMap<String, Integer> listContacts;
 	private int internalClockLogic;
 
 	public PhoneBookServerImplemetation() {
-		this.listContacts = new HashMap<String, Integer>();
+		this.listContacts = new TreeMap<String, Integer>();
 		this.setInternalClockLogic(0);
 	}
 
@@ -96,10 +96,10 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	}
 
 	@SuppressWarnings("unchecked")
-	private HashMap<String, Integer> convertToHashMap(ByteArrayInputStream byteArrayInput) {
-		HashMap<String, Integer> list = null;
+	private TreeMap<String, Integer> convertToTreeMap(ByteArrayInputStream byteArrayInput) {
+		TreeMap<String, Integer> list = null;
 		try {
-			list = (HashMap<String, Integer>) new ObjectInputStream(byteArrayInput).readObject();
+			list = (TreeMap<String, Integer>) new ObjectInputStream(byteArrayInput).readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -124,7 +124,7 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 
 	public void setListContact(String listContact) {
 		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(listContact));
-		HashMap<String, Integer> list = convertToHashMap(byteArrayInput);
+		TreeMap<String, Integer> list = convertToTreeMap(byteArrayInput);
 		this.listContacts = list;
 	}
 

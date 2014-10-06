@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import javax.swing.JScrollPane;
 
 /**
  * @author Lucas Diego Reboucas Rocha
@@ -109,9 +110,15 @@ public class FrameServer {
 		frmPhonebookServer.getContentPane().add(panelLog);
 		panelLog.setLayout(null);
 		
+		
 		textArea = new JTextArea();
 		textArea.setBounds(6, 16, 408, 133);
-		panelLog.add(textArea);
+		
+		
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setBounds(6, 21, 408, 124);
+		panelLog.add(scrollPane);
 		
 		final JButton btnConectar = new JButton("Iniciar");
 		btnConectar.addActionListener(new ActionListener() {

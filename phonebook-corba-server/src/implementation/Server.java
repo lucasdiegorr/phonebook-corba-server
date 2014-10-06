@@ -61,18 +61,15 @@ public class Server implements Runnable{
 		properties.put("org.omg.CORBA.ORBInitialPort", portNameService);
 
 		orb = ORB.init((String[])null, properties);
-		System.out.println("Iniciando o servidor");
 		textArea.append("Iniciando o servidor.\n");
 
 		try {
 			Object objectPOA = orb.resolve_initial_references("RootPOA");
-			System.out.println("Obtendo o POA");
 			textArea.append("Obtendo o POA.\n");
 
 			POA rootPOA = POAHelper.narrow(objectPOA);
 
 			Object objectNameService = orb.resolve_initial_references("NameService");
-			System.out.println("Obtendo o NameService");
 			textArea.append("Obtendo o NameService.\n");
 
 			naming = NamingContextHelper.narrow(objectNameService);
@@ -84,7 +81,6 @@ public class Server implements Runnable{
 			int index = seekReference(naming);
 
 			paths = new NameComponent[] {new NameComponent("Server", "PhoneBook-"+index)};
-			System.out.println("Registrando no servidor");
 			textArea.append("Registrado no Servidor de nomes como PhoneBook-"+index+"\n");
 
 			naming.rebind(paths, objectReference);
@@ -92,7 +88,6 @@ public class Server implements Runnable{
 			rootPOA.the_POAManager().activate();
 
 			textArea.append("Servidor online.\n");
-			System.out.println("Servidor online");
 
 		} catch (InvalidName e) {
 			e.printStackTrace();
@@ -127,13 +122,10 @@ public class Server implements Runnable{
 
 			} catch (NotFound e) {
 				verify = false;
-				e.printStackTrace();
 			} catch (CannotProceed e) {
 				verify = false;
-				e.printStackTrace();
 			} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
 				verify = false;
-				e.printStackTrace();
 			}
 		} while (verify);
 
@@ -170,14 +162,10 @@ public class Server implements Runnable{
 				this.otherServers.add(PhoneBookServerInterfaceHelper.narrow(objectInterface));
 
 			} catch (NotFound e) {
-				e.printStackTrace();
 			} catch (CannotProceed e) {
-				e.printStackTrace();
 			} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
-				e.printStackTrace();
 			}
 		}
-		System.out.println("Foram encontrados " + this.otherServers.size() + " servers.");
 		this.textArea.append("Foram encontrados " + this.otherServers.size() + " servers.\n");
 	}
 
