@@ -24,8 +24,11 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	private TreeMap<String, Integer> listContacts;
 	private int internalClockLogic;
 
+	/**
+	 * 
+	 */
 	public PhoneBookServerImplemetation() {
-		this.listContacts = new TreeMap<String, Integer>();
+		this.setListContacts(new TreeMap<String, Integer>());
 		this.setInternalClockLogic(0);
 	}
 
@@ -33,11 +36,7 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 * @see interfaces.PhoneBookServerInterfaceOperations#insertContact(java.lang.String)
 	 */
 	public void insertContact(String contactName, int contactNumber) {
-		System.out.println(contactName);
-		this.listContacts.put(contactName, contactNumber);
-		for (String key : this.listContacts.keySet()) {
-			System.out.println("Veio da lista:" + this.listContacts.get(key));
-		}
+		this.getListContacts().put(contactName, contactNumber);
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
 	}
 
@@ -49,7 +48,7 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 		ByteArrayOutputStream byteArrayOutput = new ByteArrayOutputStream();
 
 		try {
-			new ObjectOutputStream(byteArrayOutput).writeObject(this.listContacts);
+			new ObjectOutputStream(byteArrayOutput).writeObject(this.getListContacts());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -62,13 +61,15 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 */
 	public void updateContactName(String contactNameUpdated, String contactNameOld) {
 
-		for (String key : this.listContacts.keySet()) {
+		int phone = 0;
+
+		for (String key : this.getListContacts().keySet()) {
 			if (key.equals(contactNameOld)) {
-				int phone = this.listContacts.get(contactNameOld);
-				this.listContacts.remove(contactNameOld);
-				this.listContacts.put(contactNameUpdated, phone);
+				phone = this.getListContacts().get(contactNameOld);
 			}
 		}
+		this.getListContacts().remove(contactNameOld);
+		this.getListContacts().put(contactNameUpdated, phone);
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
 	}
 
@@ -77,7 +78,7 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 */
 	public void updateContactNumber(String contactName, int contactNumberOld) {
 
-		this.listContacts.replace(contactName, contactNumberOld);
+		this.getListContacts().replace(contactName, contactNumberOld);
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
 	}
 
@@ -85,16 +86,14 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 * @see interfaces.PhoneBookServerInterfaceOperations#deleteContact(java.lang.String)
 	 */
 	public void deleteContact(String contact) {
-		this.listContacts.remove(contact);
+		this.getListContacts().remove(contact);
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
 	}
 
-	public void showContacs() {
-		for (String key : listContacts.keySet()) {
-			System.out.println(key);
-		}
-	}
-
+	/**
+	 * @param byteArrayInput
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private TreeMap<String, Integer> convertToTreeMap(ByteArrayInputStream byteArrayInput) {
 		TreeMap<String, Integer> list = null;
@@ -118,14 +117,31 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	/**
 	 * @param internalClockLogic the internalClockLogic to set
 	 */
-	private void setInternalClockLogic(int internalClockLogic) {
+	public void setInternalClockLogic(int internalClockLogic) {
 		this.internalClockLogic = internalClockLogic;
 	}
 
+	/**
+	 * @param listContact
+	 */
 	public void setListContact(String listContact) {
 		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(listContact));
 		TreeMap<String, Integer> list = convertToTreeMap(byteArrayInput);
-		this.listContacts = list;
+		this.setListContacts(list);
+	}
+
+	/**
+	 * @return the listContacts
+	 */
+	public TreeMap<String, Integer> getListContacts() {
+		return listContacts;
+	}
+
+	/**
+	 * @param listContacts the listContacts to set
+	 */
+	public void setListContacts(TreeMap<String, Integer> listContacts) {
+		this.listContacts = listContacts;
 	}
 
 }

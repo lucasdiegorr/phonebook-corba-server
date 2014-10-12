@@ -43,51 +43,53 @@ public class Server implements Runnable{
 	private List<PhoneBookServerInterface> otherServers;
 
 	public Server(String ip, String port, JTextArea textArea) {
-		this.ipNameService = ip;
-		this.portNameService = port;
-		this.textArea = textArea;
-		this.otherServers = new ArrayList<PhoneBookServerInterface>();
+		this.setIpNameService(ip);
+		this.setPortNameService(port);
+		this.setTextArea(textArea);
+		this.setOtherServers(new ArrayList<PhoneBookServerInterface>());
 	}
 
 	/**
-	 * @param args
+	 * @return
 	 */
 	public boolean init() {
 
 
 		Properties properties = new Properties();
 
-		properties.put("org.omg.CORBA.ORBInitialHost", ipNameService);
-		properties.put("org.omg.CORBA.ORBInitialPort", portNameService);
+		properties.put("org.omg.CORBA.ORBInitialHost", getIpNameService());
+		properties.put("org.omg.CORBA.ORBInitialPort", getPortNameService());
 
 		try {
-			orb = ORB.init((String[])null, properties);
-			textArea.append("Iniciando o servidor.\n");
+			setOrb(ORB.init((String[])null, properties));
+			getTextArea().append("Iniciando o servidor.\n");
 
-			Object objectPOA = orb.resolve_initial_references("RootPOA");
-			textArea.append("Obtendo o POA.\n");
+			Object objectPOA = getOrb().resolve_initial_references("RootPOA");
+			getTextArea().append("Obtendo o POA.\n");
 
 			POA rootPOA = POAHelper.narrow(objectPOA);
 
-			Object objectNameService = orb.resolve_initial_references("NameService");
-			textArea.append("Obtendo o NameService.\n");
+			Object objectNameService = getOrb().resolve_initial_references("NameService");
+			getTextArea().append("Obtendo o NameService.\n");
 
-			naming = NamingContextHelper.narrow(objectNameService);
+			setNaming(NamingContextHelper.narrow(objectNameService));
 
-			phoneBookServer = new PhoneBookServerImplemetation();
+			setPhoneBookServer(new PhoneBookServerImplemetation());
 
-			Object objectReference = rootPOA.servant_to_reference(phoneBookServer);
+			Object objectReference = rootPOA.servant_to_reference(getPhoneBookServer());
 
-			int index = seekReference(naming);
+			int index = seekReference(getNaming());
 
-			paths = new NameComponent[] {new NameComponent("Server", "PhoneBook-"+index)};
-			textArea.append("Registrado no Servidor de nomes como PhoneBook-"+index+"\n");
+			setPaths(new NameComponent[] {new NameComponent("Server", "PhoneBook-"+index)});
+			getTextArea().append("Registrado como PhoneBook-"+index+"\n");
 
-			naming.rebind(paths, objectReference);
+
+			getNaming().rebind(getPaths(), objectReference);
 
 			rootPOA.the_POAManager().activate();
 
-			textArea.append("Servidor online.\n");
+			getTextArea().append("Servidor online.\n");
+			this.getTextArea().setCaretPosition(this.getTextArea().getDocument().getLength());
 
 		} catch (InvalidName e) {
 			e.printStackTrace();
@@ -116,7 +118,7 @@ public class Server implements Runnable{
 
 	/**
 	 * @param naming
-	 * @return
+	 * @return int 
 	 */
 	@SuppressWarnings("unused")
 	private int seekReference(NamingContext naming) {
@@ -140,17 +142,25 @@ public class Server implements Runnable{
 		return index;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 		new Thread(new ScheduledTask()).start();
-		orb.run();
+		getOrb().run();
 	}
 
+	/**
+	 * 
+	 */
 	private void synchronize() {
-		for (PhoneBookServerInterface otherServer : this.otherServers) {
-			if (this.phoneBookServer.getInternalClockLogic() < otherServer.getInternalClockLogic()) {
-				this.textArea.append("Server desatualizado.\nAtualizando...\n");
-				this.phoneBookServer.setListContact(otherServer.getListContact());
-				this.textArea.append("Server atualizado.\n");
+		for (PhoneBookServerInterface otherServer : this.getOtherServers()) {
+			if (this.getPhoneBookServer().getInternalClockLogic() < otherServer.getInternalClockLogic()) {
+				this.getTextArea().append("Server desatualizado.\nAtualizando...\n");
+				this.getPhoneBookServer().setListContact(otherServer.getListContact());
+				this.getPhoneBookServer().setInternalClockLogic(otherServer.getInternalClockLogic());
+				this.getTextArea().append("Server atualizado.\n");
+				this.getTextArea().setCaretPosition(this.getTextArea().getDocument().getLength());
 			}
 		}
 	}
@@ -159,30 +169,31 @@ public class Server implements Runnable{
 	 * 
 	 */
 	private void checkServers() {
-		this.otherServers = new ArrayList<PhoneBookServerInterface>();
+		this.setOtherServers(new ArrayList<PhoneBookServerInterface>());
 		int index = -1;
 		while (index < 3) {
 			try {
 				index++;
 				NameComponent[] path = {new NameComponent("Server", "PhoneBook-"+index)};
-				Object objectInterface = naming.resolve(path);
+				Object objectInterface = getNaming().resolve(path);
 
-				this.otherServers.add(PhoneBookServerInterfaceHelper.narrow(objectInterface));
+				this.getOtherServers().add(PhoneBookServerInterfaceHelper.narrow(objectInterface));
 
 			} catch (NotFound e) {
 			} catch (CannotProceed e) {
 			} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
 			}
 		}
-		this.textArea.append("Foram encontrados " + this.otherServers.size() + " servers.\n");
+		this.getTextArea().append("Encontrado(os) " + this.getOtherServers().size() + " servers.\n");
+		this.getTextArea().setCaretPosition(this.getTextArea().getDocument().getLength());
 	}
 
 	/**
-	 * 
+	 * @return boolean 
 	 */
 	public boolean destroy() {
 		try {
-			naming.unbind(paths);
+			getNaming().unbind(getPaths());
 		} catch (NotFound e) {
 			e.printStackTrace();
 			return false;
@@ -196,6 +207,122 @@ public class Server implements Runnable{
 		return true;
 	}
 
+	/**
+	 * @return the ipNameService
+	 */
+	public String getIpNameService() {
+		return ipNameService;
+	}
+
+	/**
+	 * @param ipNameService the ipNameService to set
+	 */
+	public void setIpNameService(String ipNameService) {
+		this.ipNameService = ipNameService;
+	}
+
+	/**
+	 * @return the portNameService
+	 */
+	public String getPortNameService() {
+		return portNameService;
+	}
+
+	/**
+	 * @param portNameService the portNameService to set
+	 */
+	public void setPortNameService(String portNameService) {
+		this.portNameService = portNameService;
+	}
+
+	/**
+	 * @return the textArea
+	 */
+	public JTextArea getTextArea() {
+		return textArea;
+	}
+
+	/**
+	 * @param textArea the textArea to set
+	 */
+	public void setTextArea(JTextArea textArea) {
+		this.textArea = textArea;
+	}
+
+	/**
+	 * @return the orb
+	 */
+	public ORB getOrb() {
+		return orb;
+	}
+
+	/**
+	 * @param orb the orb to set
+	 */
+	public void setOrb(ORB orb) {
+		this.orb = orb;
+	}
+
+	/**
+	 * @return the phoneBookServer
+	 */
+	public PhoneBookServerImplemetation getPhoneBookServer() {
+		return phoneBookServer;
+	}
+
+	/**
+	 * @param phoneBookServer the phoneBookServer to set
+	 */
+	public void setPhoneBookServer(PhoneBookServerImplemetation phoneBookServer) {
+		this.phoneBookServer = phoneBookServer;
+	}
+
+	/**
+	 * @return the paths
+	 */
+	public NameComponent[] getPaths() {
+		return paths;
+	}
+
+	/**
+	 * @param paths the paths to set
+	 */
+	public void setPaths(NameComponent[] paths) {
+		this.paths = paths;
+	}
+
+	/**
+	 * @return the naming
+	 */
+	public NamingContext getNaming() {
+		return naming;
+	}
+
+	/**
+	 * @param naming the naming to set
+	 */
+	public void setNaming(NamingContext naming) {
+		this.naming = naming;
+	}
+
+	/**
+	 * @return the otherServers
+	 */
+	public List<PhoneBookServerInterface> getOtherServers() {
+		return otherServers;
+	}
+
+	/**
+	 * @param otherServers the otherServers to set
+	 */
+	public void setOtherServers(List<PhoneBookServerInterface> otherServers) {
+		this.otherServers = otherServers;
+	}
+
+	/**
+	 * @author Lucas Diego Reboucas Rocha
+	 *
+	 */
 	private class ScheduledTask implements Runnable {
 		public void run() {
 			while (true) {
