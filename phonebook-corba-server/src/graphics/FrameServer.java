@@ -105,6 +105,7 @@ public class FrameServer {
 
 
 		textArea = new JTextArea();
+		textArea.setEditable(false);
 		textArea.setFont(new Font("Consolas", Font.PLAIN, 13));
 		textArea.setBounds(6, 16, 408, 133);
 
