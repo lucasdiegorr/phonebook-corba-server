@@ -1,7 +1,7 @@
 /**
  * 
  */
-package implementation;
+package com.ldrr.implementation;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +13,12 @@ import java.util.TreeMap;
 import org.apache.commons.codec.binary.Base64;
 
 import interfaces.PhoneBookServerInterfacePOA;
+
+/**
+ * All source code and required libraries are found at the following link:
+ * https://github.com/lucasdiegorr/phonebook-corba-server
+ * branch: master
+ */
 
 /**
  * @author Lucas Diego Reboucas Rocha

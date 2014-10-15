@@ -1,7 +1,7 @@
 /**
  * 
  */
-package implementation;
+package com.ldrr.implementation;
 
 import interfaces.PhoneBookServerInterface;
 import interfaces.PhoneBookServerInterfaceHelper;
@@ -27,6 +27,12 @@ import org.omg.PortableServer.POAPackage.ServantNotActive;
 import org.omg.PortableServer.POAPackage.WrongPolicy;
 
 /**
+ * All source code and required libraries are found at the following link:
+ * https://github.com/lucasdiegorr/phonebook-corba-server
+ * branch: master
+ */
+
+/**
  * @author Lucas Diego Reboucas Rocha
  * @email lucas.diegorr@gmail.com
  * @year 2014
@@ -50,7 +56,8 @@ public class Server implements Runnable{
 	}
 
 	/**
-	 * @return
+	 * Inicia a conexão e o registro do serviço no servidor de nomes
+	 * @return boolean informando se a conexão foi estabelecida e o registro foi realizado
 	 */
 	public boolean init() {
 
@@ -117,6 +124,8 @@ public class Server implements Runnable{
 	}
 
 	/**
+	 * Busca as referencias vivas dos servidores no ServerName
+	 * Baseado nessa busca retorna um inteiro contendo o proximo numero de servidor válido
 	 * @param naming
 	 * @return int 
 	 */
@@ -151,7 +160,8 @@ public class Server implements Runnable{
 	}
 
 	/**
-	 * 
+	 * Sincroniza a lista de contatos local deste servidor baseado nos relógios lógicos
+	 * dos outros servidores
 	 */
 	private void synchronize() {
 		for (PhoneBookServerInterface otherServer : this.getOtherServers()) {
@@ -165,8 +175,9 @@ public class Server implements Runnable{
 		}
 	}
 
+	
 	/**
-	 * 
+	 * Verifica os servidores ativos no Servidor de Nomes
 	 */
 	private void checkServers() {
 		this.setOtherServers(new ArrayList<PhoneBookServerInterface>());
@@ -189,6 +200,7 @@ public class Server implements Runnable{
 	}
 
 	/**
+	 * Apaga a referencia do servidor no Servidor de Nomes
 	 * @return boolean 
 	 */
 	public boolean destroy() {
@@ -321,7 +333,7 @@ public class Server implements Runnable{
 
 	/**
 	 * @author Lucas Diego Reboucas Rocha
-	 *
+	 * Thread reponsável pela procura e sincronia dos servidores
 	 */
 	private class ScheduledTask implements Runnable {
 		public void run() {
