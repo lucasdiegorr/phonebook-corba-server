@@ -8,10 +8,24 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.codec.binary.Base64;
+import org.omg.CORBA.ORB;
+import org.omg.CORBA.Object;
+import org.omg.CORBA.ORBPackage.InvalidName;
+import org.omg.CosNaming.NameComponent;
+import org.omg.CosNaming.NamingContext;
+import org.omg.CosNaming.NamingContextHelper;
+import org.omg.CosNaming.NamingContextPackage.CannotProceed;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 
+import interfaces.PhoneBookClientInterface;
+import interfaces.PhoneBookClientInterfaceHelper;
+import interfaces.PhoneBookServerInterface;
+import interfaces.PhoneBookServerInterfaceHelper;
 import interfaces.PhoneBookServerInterfacePOA;
 
 /**
@@ -28,14 +42,21 @@ import interfaces.PhoneBookServerInterfacePOA;
 public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 
 	private TreeMap<String, Integer> listContacts;
+	private List<PhoneBookClientInterface> listClients;
+	private List<PhoneBookServerInterface> otherServers;
 	private int internalClockLogic;
+	private ORB orb;
 
 	/**
+	 * @param orb 
 	 * 
 	 */
-	public PhoneBookServerImplemetation() {
+	public PhoneBookServerImplemetation(ORB orb) {
 		this.setListContacts(new TreeMap<String, Integer>());
+		this.listClients = new ArrayList<PhoneBookClientInterface>();
+		this.setOtherServers(new ArrayList<PhoneBookServerInterface>());
 		this.setInternalClockLogic(0);
+		this.orb = orb;
 	}
 
 	/* (non-Javadoc)
@@ -43,7 +64,27 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 */
 	public void insertContact(String contactName, int contactNumber) {
 		this.getListContacts().put(contactName, contactNumber);
+		sincronizeServers();
+		sincronizeClients();
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
+	}
+
+	/**
+	 * 
+	 */
+	private void sincronizeClients() {
+		for (PhoneBookClientInterface client : this.listClients) {
+			client.updateListContact(getListContact());
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void sincronizeServers() {
+		for (PhoneBookServerInterface otherServer : getOtherServers()) {
+			otherServer.setListContact(getListContact());
+		}
 	}
 
 	/* (non-Javadoc)
@@ -96,6 +137,63 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 		this.setInternalClockLogic(this.getInternalClockLogic() + 1);
 	}
 
+	/* (non-Javadoc)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#registryClientInServer(int)
+	 */
+	public boolean registryClientInServer(int index) {
+		Object objectInterface = null;
+		try {
+			Object objectNameService = orb.resolve_initial_references("NameService");
+
+			NamingContext naming = NamingContextHelper.narrow(objectNameService);
+			NameComponent[] path = {new NameComponent("Client", "PhoneBookClient-"+index)};
+
+			objectInterface = naming.resolve(path);
+		} catch (InvalidName e) {
+			return false;
+		} catch (NotFound e) {
+			return false;
+		} catch (CannotProceed e) {
+			return false;
+		} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
+			return false;
+		}
+
+		this.listClients.add(index, PhoneBookClientInterfaceHelper.narrow(objectInterface));
+
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#removeClientInServer(int)
+	 */
+	public boolean removeClientInServer(int index) {
+		try {
+			this.listClients.remove(index);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+
+	public void checkServers(NamingContext naming) {
+		this.setOtherServers(new ArrayList<PhoneBookServerInterface>());
+		int index = -1;
+		while (index < 3) {
+			try {
+				index++;
+				NameComponent[] path = {new NameComponent("Server", "PhoneBook-"+index)};
+				Object objectInterface = naming.resolve(path);
+
+				this.getOtherServers().add(PhoneBookServerInterfaceHelper.narrow(objectInterface));
+
+			} catch (NotFound e) {
+			} catch (CannotProceed e) {
+			} catch (org.omg.CosNaming.NamingContextPackage.InvalidName e) {
+			}
+		}
+	}
+
 	/**
 	 * @param byteArrayInput
 	 * @return
@@ -127,8 +225,8 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 		this.internalClockLogic = internalClockLogic;
 	}
 
-	/**
-	 * @param listContact
+	/* (non-Javadoc)
+	 * @see interfaces.PhoneBookServerInterfaceOperations#setListContact(java.lang.String)
 	 */
 	public void setListContact(String listContact) {
 		ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(Base64.decodeBase64(listContact));
@@ -148,6 +246,20 @@ public class PhoneBookServerImplemetation extends PhoneBookServerInterfacePOA{
 	 */
 	public void setListContacts(TreeMap<String, Integer> listContacts) {
 		this.listContacts = listContacts;
+	}
+
+	/**
+	 * @return the otherServers
+	 */
+	public List<PhoneBookServerInterface> getOtherServers() {
+		return otherServers;
+	}
+
+	/**
+	 * @param otherServers the otherServers to set
+	 */
+	public void setOtherServers(List<PhoneBookServerInterface> otherServers) {
+		this.otherServers = otherServers;
 	}
 
 }

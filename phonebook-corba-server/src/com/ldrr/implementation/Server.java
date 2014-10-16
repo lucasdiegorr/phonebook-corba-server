@@ -81,7 +81,7 @@ public class Server implements Runnable{
 
 			setNaming(NamingContextHelper.narrow(objectNameService));
 
-			setPhoneBookServer(new PhoneBookServerImplemetation());
+			setPhoneBookServer(new PhoneBookServerImplemetation(getOrb()));
 
 			Object objectReference = rootPOA.servant_to_reference(getPhoneBookServer());
 

@@ -13,5 +13,10 @@ module interfaces{
 		
 		long getInternalClockLogic();
 		
+		boolean registryClientInServer(in long index);
+		
+		boolean removeClientInServer(in long index);
+		
+		void setListContact(in string listContact);
 	};
 };
